@@ -565,7 +565,16 @@ Index · HTML
       $("#pay").addEventListener("click", () => toBot("buy_" + key));
       $("#link").addEventListener("click", () => toBot("link"));
       $("#extend").addEventListener("click", () => show("tariffs"));
-      $("#support").addEventListener("click", () => toBot("support"));
+      const SUPPORT = "lil_pump_kin"; // ник поддержки без @
+      $("#support").addEventListener("click", () => {
+        const url =
+          "https://t.me/" +
+          SUPPORT +
+          "?text=" +
+          encodeURIComponent("Здравствуйте! Вопрос по подписке: ");
+        if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
+        else window.open(url, "_blank");
+      });
       $("#refresh").addEventListener("click", () => toBot("app"));
       renderSub();
       renderOrders();
