@@ -1,3 +1,4 @@
+Index · HTML
 <!doctype html>
 <html lang="ru">
   <head>
@@ -59,8 +60,9 @@
         margin: 0 0 22px;
         font-size: 15px;
       }
-      .screen[hidden] {
-        display: none;
+      .screen[hidden],
+      [hidden] {
+        display: none !important;
       }
       button {
         font: inherit;
@@ -72,7 +74,6 @@
         outline-offset: 2px;
       }
 
-      /* Тарифы */
       .tariff {
         display: block;
         width: 100%;
@@ -144,7 +145,6 @@
         background: var(--accent);
       }
 
-      /* Кнопки */
       .btn {
         display: block;
         width: 100%;
@@ -166,7 +166,6 @@
         color: var(--text);
       }
 
-      /* Подписка */
       .card {
         background: var(--surface);
         border: 1.5px solid var(--line);
@@ -204,7 +203,7 @@
       .bar i {
         display: block;
         height: 100%;
-        width: 77%;
+        width: 0;
         background: var(--accent);
         border-radius: 99px;
       }
@@ -214,7 +213,6 @@
         margin: 10px 0 0;
       }
 
-      /* Заказы */
       .order {
         display: flex;
         justify-content: space-between;
@@ -248,7 +246,6 @@
         font-weight: 500;
       }
 
-      /* Помощь */
       details {
         background: var(--surface);
         border: 1.5px solid var(--line);
@@ -266,7 +263,6 @@
         font-size: 15px;
       }
 
-      /* Нижнее меню */
       nav {
         position: fixed;
         left: 0;
@@ -308,31 +304,6 @@
         stroke-linecap: round;
         stroke-linejoin: round;
       }
-
-      /* Уведомление */
-      #toast {
-        position: fixed;
-        left: 50%;
-        bottom: calc(env(safe-area-inset-bottom, 0px) + 86px);
-        transform: translate(-50%, 12px);
-        background: var(--text);
-        color: var(--bg);
-        padding: 11px 18px;
-        border-radius: 12px;
-        font-size: 15px;
-        font-weight: 500;
-        opacity: 0;
-        pointer-events: none;
-        transition:
-          opacity 0.2s,
-          transform 0.2s;
-        max-width: 90%;
-        text-align: center;
-      }
-      #toast.on {
-        opacity: 1;
-        transform: translate(-50%, 0);
-      }
       @media (prefers-reduced-motion: reduce) {
         * {
           transition: none !important;
@@ -353,6 +324,7 @@
             role="radio"
             aria-checked="true"
             data-price="299"
+            data-key="month"
           >
             <div class="row">
               <span class="name">1 месяц</span><span class="price">299 ₽</span>
@@ -364,6 +336,7 @@
             role="radio"
             aria-checked="false"
             data-price="699"
+            data-key="quarter"
           >
             <div class="row">
               <span class="name"
@@ -384,60 +357,27 @@
       <section class="screen" id="sub" hidden>
         <h1>Моя подписка</h1>
         <p class="lead">Доступ к каналу и срок действия.</p>
-        <div class="card">
+        <div class="card" id="sub-on" hidden>
           <span class="pill">Активна</span>
-          <div class="days">23</div>
-          <p class="days-label">дня осталось</p>
-          <div
-            class="bar"
-            role="progressbar"
-            aria-valuenow="23"
-            aria-valuemin="0"
-            aria-valuemax="30"
-          >
-            <i></i>
-          </div>
-          <p class="until">Действует до 11 ноября 2026</p>
+          <div class="days" id="d-num">0</div>
+          <p class="days-label" id="d-label"></p>
+          <div class="bar"><i id="d-fill"></i></div>
+          <p class="until" id="d-until"></p>
+        </div>
+        <div class="card" id="sub-off" hidden>
+          <p id="off-text" style="margin: 0"></p>
         </div>
         <button class="btn" id="link">Получить ссылку в канал</button>
-        <button class="btn ghost" id="extend">Продлить</button>
+        <button class="btn ghost" id="extend">Оформить или продлить</button>
       </section>
 
       <section class="screen" id="orders" hidden>
         <h1>Заказы</h1>
         <p class="lead">История ваших платежей.</p>
-        <div class="card" style="padding: 4px 20px">
-          <div class="order">
-            <div>
-              <div class="t">1 месяц</div>
-              <div class="s">Заказ №14, 12 октября</div>
-            </div>
-            <div class="a">
-              299 ₽
-              <div class="st-paid">Оплачен</div>
-            </div>
-          </div>
-          <div class="order">
-            <div>
-              <div class="t">3 месяца</div>
-              <div class="s">Заказ №9, 2 октября</div>
-            </div>
-            <div class="a">
-              699 ₽
-              <div class="st-off">Отменён</div>
-            </div>
-          </div>
-          <div class="order">
-            <div>
-              <div class="t">1 месяц</div>
-              <div class="s">Заказ №3, 12 сентября</div>
-            </div>
-            <div class="a">
-              299 ₽
-              <div class="st-paid">Оплачен</div>
-            </div>
-          </div>
-        </div>
+        <div class="card" id="orders-list" style="padding: 4px 20px"></div>
+        <button class="btn ghost" id="refresh">
+          Открыть данные через бота
+        </button>
       </section>
 
       <section class="screen" id="help" hidden>
@@ -498,7 +438,6 @@
         </button>
       </div>
     </nav>
-    <div id="toast" role="status" aria-live="polite"></div>
 
     <script>
       const tg = window.Telegram && window.Telegram.WebApp;
@@ -513,13 +452,12 @@
 
       const $ = (s, r = document) => r.querySelector(s);
       const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-      let price = 299;
+      const BOT = "samokr_ytka_bot";
+      let price = 299,
+        key = "month";
 
       function show(tab) {
         $$(".screen").forEach((s) => (s.hidden = s.id !== tab));
-        $$("nav button").forEach((b) =>
-          b.toggleAttribute("aria-current", b.dataset.tab === tab),
-        );
         $$("nav button").forEach((b) =>
           b.dataset.tab === tab
             ? b.setAttribute("aria-current", "page")
@@ -527,19 +465,6 @@
         );
         window.scrollTo(0, 0);
       }
-
-      let timer;
-      function toast(msg) {
-        const t = $("#toast");
-        t.textContent = msg;
-        t.classList.add("on");
-        clearTimeout(timer);
-        timer = setTimeout(() => t.classList.remove("on"), 2400);
-        try {
-          tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred("light");
-        } catch (e) {}
-      }
-
       $$("nav button").forEach((b) =>
         b.addEventListener("click", () => show(b.dataset.tab)),
       );
@@ -547,19 +472,103 @@
         b.addEventListener("click", () => {
           $$(".tariff").forEach((x) => x.setAttribute("aria-checked", x === b));
           price = Number(b.dataset.price);
+          key = b.dataset.key;
           $("#pay").textContent = "Оплатить " + price + " ₽";
         }),
       );
-      $("#pay").addEventListener("click", () =>
-        toast("Заказ на " + price + " ₽ оплачен (тест)"),
-      );
-      $("#link").addEventListener("click", () =>
-        toast("Ссылка отправлена в чат с ботом"),
-      );
+
+      const q = new URLSearchParams(location.search);
+      const hasData = q.has("n");
+      const TITLES = { m: "1 месяц", q: "3 месяца", t: "Тест 2 минуты" };
+      const STATUS = {
+        p: ["Оплачен", "st-paid"],
+        c: ["Отменён", "st-off"],
+        w: ["Ожидает оплаты", "st-off"],
+      };
+
+      function toBot(param) {
+        const url = "https://t.me/" + BOT + "?start=" + param;
+        if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
+        else window.open(url, "_blank");
+      }
+      function leftLabel(n) {
+        const a = n % 10,
+          b = n % 100;
+        if (a === 1 && b !== 11) return "день остался";
+        if (a >= 2 && a <= 4 && (b < 12 || b > 14)) return "дня осталось";
+        return "дней осталось";
+      }
+      const dateRu = (sec, withYear) =>
+        new Date(sec * 1000).toLocaleDateString(
+          "ru-RU",
+          withYear
+            ? { day: "numeric", month: "long", year: "numeric" }
+            : { day: "numeric", month: "long" },
+        );
+
+      function renderSub() {
+        const until = Number(q.get("s")) || 0;
+        const left = until * 1000 - Date.now();
+        const active = hasData && left > 0;
+        $("#sub-on").hidden = !active;
+        $("#sub-off").hidden = active;
+        if (active) {
+          const days = Math.max(1, Math.ceil(left / 86400000));
+          const total = Math.max(1, Number(q.get("t")) || 30);
+          $("#d-num").textContent = days;
+          $("#d-label").textContent = leftLabel(days);
+          $("#d-fill").style.width = Math.min(100, (days / total) * 100) + "%";
+          $("#d-until").textContent = "Действует до " + dateRu(until, true);
+        } else {
+          $("#off-text").textContent = hasData
+            ? "Активной подписки нет. Оформите её на вкладке «Тарифы»."
+            : "Чтобы увидеть подписку, откройте приложение кнопкой из чата с ботом.";
+        }
+      }
+
+      function renderOrders() {
+        const box = $("#orders-list");
+        $("#refresh").hidden = hasData;
+        const rows = (q.get("o") || "")
+          .split("_")
+          .map((s) => s.match(/^(\d+)\.([mqt])\.(\d+)\.([pcw])\.(\d+)$/))
+          .filter(Boolean);
+        if (!rows.length) {
+          box.innerHTML =
+            '<p style="color:var(--muted);margin:16px 0">' +
+            (hasData
+              ? "Заказов пока нет."
+              : "Чтобы увидеть заказы, откройте приложение кнопкой из чата с ботом.") +
+            "</p>";
+          return;
+        }
+        box.innerHTML = rows
+          .map(
+            ([, id, t, amount, st, sec]) =>
+              '<div class="order"><div><div class="t">' +
+              TITLES[t] +
+              '</div><div class="s">Заказ №' +
+              id +
+              ", " +
+              dateRu(sec) +
+              '</div></div><div class="a">' +
+              amount +
+              ' ₽<div class="' +
+              STATUS[st][1] +
+              '">' +
+              STATUS[st][0] +
+              "</div></div></div>",
+          )
+          .join("");
+      }
+
+      $("#pay").addEventListener("click", () => toBot("buy_" + key));
+      $("#link").addEventListener("click", () => toBot("link"));
       $("#extend").addEventListener("click", () => show("tariffs"));
-      $("#support").addEventListener("click", () =>
-        toast("Здесь откроется чат поддержки"),
-      );
+      $("#support").addEventListener("click", () => toBot("support"));
+      $("#refresh").addEventListener("click", () => toBot("app"));
+      renderSub();
+      renderOrders();
     </script>
   </body>
 </html>
