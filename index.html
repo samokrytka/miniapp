@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Подписка на канал</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+      :root {
+        --bg: #0e1512;
+        --surface: #16201b;
+        --surface-2: #1d2a23;
+        --line: #2a3a31;
+        --text: #e9f1ec;
+        --muted: #8da295;
+        --accent: #4fcb8a;
+        --on-accent: #06251a;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          16px/1.5 "Golos Text",
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .app {
+        max-width: 480px;
+        margin: 0 auto;
+        padding: calc(env(safe-area-inset-top, 0px) + 20px) 18px 110px;
+      }
+      h1 {
+        font-size: 26px;
+        line-height: 1.2;
+        margin: 0 0 6px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      .lead {
+        color: var(--muted);
+        margin: 0 0 22px;
+        font-size: 15px;
+      }
+      .screen[hidden] {
+        display: none;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      /* Тарифы */
+      .tariff {
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: var(--surface);
+        border: 1.5px solid var(--line);
+        border-radius: 16px;
+        padding: 16px 18px;
+        margin-bottom: 12px;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+      }
+      .tariff[aria-checked="true"] {
+        border-color: var(--accent);
+        background: var(--surface-2);
+      }
+      .tariff .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+      }
+      .tariff .name {
+        font-weight: 600;
+        font-size: 17px;
+      }
+      .tariff .price {
+        font-weight: 700;
+        font-size: 22px;
+        font-variant-numeric: tabular-nums;
+      }
+      .tariff .note {
+        color: var(--muted);
+        font-size: 14px;
+        margin-top: 2px;
+      }
+      .badge {
+        display: inline-block;
+        background: var(--accent);
+        color: var(--on-accent);
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 99px;
+        padding: 1px 9px;
+        margin-left: 8px;
+        vertical-align: 2px;
+      }
+      .includes {
+        list-style: none;
+        margin: 22px 0 0;
+        padding: 0;
+        color: var(--muted);
+        font-size: 15px;
+      }
+      .includes li {
+        padding-left: 22px;
+        position: relative;
+        margin-bottom: 8px;
+      }
+      .includes li::before {
+        content: "";
+        position: absolute;
+        left: 3px;
+        top: 0.6em;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+
+      /* Кнопки */
+      .btn {
+        display: block;
+        width: 100%;
+        border: 0;
+        border-radius: 14px;
+        padding: 15px;
+        font-weight: 600;
+        font-size: 16px;
+        background: var(--accent);
+        color: var(--on-accent);
+        margin-top: 18px;
+      }
+      .btn:active {
+        transform: scale(0.99);
+      }
+      .btn.ghost {
+        background: transparent;
+        border: 1.5px solid var(--line);
+        color: var(--text);
+      }
+
+      /* Подписка */
+      .card {
+        background: var(--surface);
+        border: 1.5px solid var(--line);
+        border-radius: 18px;
+        padding: 22px;
+      }
+      .pill {
+        display: inline-block;
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        border-radius: 99px;
+        padding: 1px 11px;
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .days {
+        font-size: 76px;
+        font-weight: 700;
+        line-height: 1;
+        margin: 16px 0 2px;
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.03em;
+      }
+      .days-label {
+        color: var(--muted);
+        margin: 0 0 18px;
+      }
+      .bar {
+        height: 8px;
+        background: var(--surface-2);
+        border-radius: 99px;
+        overflow: hidden;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        width: 77%;
+        background: var(--accent);
+        border-radius: 99px;
+      }
+      .until {
+        color: var(--muted);
+        font-size: 14px;
+        margin: 10px 0 0;
+      }
+
+      /* Заказы */
+      .order {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 15px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .order:last-child {
+        border-bottom: 0;
+      }
+      .order .t {
+        font-weight: 600;
+      }
+      .order .s {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .order .a {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+      }
+      .st-paid {
+        color: var(--accent);
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .st-off {
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      /* Помощь */
+      details {
+        background: var(--surface);
+        border: 1.5px solid var(--line);
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin-top: 10px;
+      }
+      summary {
+        cursor: pointer;
+        font-weight: 600;
+      }
+      details p {
+        color: var(--muted);
+        margin: 8px 0 0;
+        font-size: 15px;
+      }
+
+      /* Нижнее меню */
+      nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(14, 21, 18, 0.94);
+        backdrop-filter: blur(12px);
+        border-top: 1px solid var(--line);
+        display: flex;
+        justify-content: center;
+        padding: 8px 8px calc(env(safe-area-inset-bottom, 0px) + 8px);
+      }
+      nav .in {
+        display: flex;
+        width: 100%;
+        max-width: 480px;
+      }
+      nav button {
+        flex: 1;
+        background: none;
+        border: 0;
+        padding: 6px 0;
+        color: var(--muted);
+        font-size: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+      }
+      nav button[aria-current="page"] {
+        color: var(--accent);
+      }
+      nav svg {
+        width: 24px;
+        height: 24px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* Уведомление */
+      #toast {
+        position: fixed;
+        left: 50%;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 86px);
+        transform: translate(-50%, 12px);
+        background: var(--text);
+        color: var(--bg);
+        padding: 11px 18px;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 500;
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
+        max-width: 90%;
+        text-align: center;
+      }
+      #toast.on {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <section class="screen" id="tariffs">
+        <h1>Доступ к закрытому каналу</h1>
+        <p class="lead">
+          Выберите срок. Оплата в тестовом режиме, деньги не списываются.
+        </p>
+        <div role="radiogroup" aria-label="Тариф">
+          <button
+            class="tariff"
+            role="radio"
+            aria-checked="true"
+            data-price="299"
+          >
+            <div class="row">
+              <span class="name">1 месяц</span><span class="price">299 ₽</span>
+            </div>
+            <div class="note">299 ₽ в месяц</div>
+          </button>
+          <button
+            class="tariff"
+            role="radio"
+            aria-checked="false"
+            data-price="699"
+          >
+            <div class="row">
+              <span class="name"
+                >3 месяца<span class="badge">Выгоднее</span></span
+              ><span class="price">699 ₽</span>
+            </div>
+            <div class="note">233 ₽ в месяц, экономия 198 ₽</div>
+          </button>
+        </div>
+        <ul class="includes">
+          <li>Все материалы закрытого канала</li>
+          <li>Одноразовая ссылка приходит сразу после оплаты</li>
+          <li>При продлении срок добавляется к текущему</li>
+        </ul>
+        <button class="btn" id="pay">Оплатить 299 ₽</button>
+      </section>
+
+      <section class="screen" id="sub" hidden>
+        <h1>Моя подписка</h1>
+        <p class="lead">Доступ к каналу и срок действия.</p>
+        <div class="card">
+          <span class="pill">Активна</span>
+          <div class="days">23</div>
+          <p class="days-label">дня осталось</p>
+          <div
+            class="bar"
+            role="progressbar"
+            aria-valuenow="23"
+            aria-valuemin="0"
+            aria-valuemax="30"
+          >
+            <i></i>
+          </div>
+          <p class="until">Действует до 11 ноября 2026</p>
+        </div>
+        <button class="btn" id="link">Получить ссылку в канал</button>
+        <button class="btn ghost" id="extend">Продлить</button>
+      </section>
+
+      <section class="screen" id="orders" hidden>
+        <h1>Заказы</h1>
+        <p class="lead">История ваших платежей.</p>
+        <div class="card" style="padding: 4px 20px">
+          <div class="order">
+            <div>
+              <div class="t">1 месяц</div>
+              <div class="s">Заказ №14, 12 октября</div>
+            </div>
+            <div class="a">
+              299 ₽
+              <div class="st-paid">Оплачен</div>
+            </div>
+          </div>
+          <div class="order">
+            <div>
+              <div class="t">3 месяца</div>
+              <div class="s">Заказ №9, 2 октября</div>
+            </div>
+            <div class="a">
+              699 ₽
+              <div class="st-off">Отменён</div>
+            </div>
+          </div>
+          <div class="order">
+            <div>
+              <div class="t">1 месяц</div>
+              <div class="s">Заказ №3, 12 сентября</div>
+            </div>
+            <div class="a">
+              299 ₽
+              <div class="st-paid">Оплачен</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="help" hidden>
+        <h1>Помощь</h1>
+        <p class="lead">Отвечаем в течение 24 часов.</p>
+        <button class="btn" id="support" style="margin-top: 0">
+          Написать в поддержку
+        </button>
+        <details>
+          <summary>Как получить ссылку на канал?</summary>
+          <p>
+            Ссылка приходит в чат с ботом сразу после оплаты и действует 1 час.
+            Если она истекла, нажмите «Получить ссылку в канал» на вкладке
+            «Подписка».
+          </p>
+        </details>
+        <details>
+          <summary>Что будет, когда подписка закончится?</summary>
+          <p>
+            Бот напишет вам и уберёт вас из канала. Вернуться можно в любой
+            момент, оформив новую подписку.
+          </p>
+        </details>
+        <details>
+          <summary>Можно ли продлить заранее?</summary>
+          <p>Да. Оплаченный срок добавится к текущему, дни не сгорят.</p>
+        </details>
+      </section>
+    </main>
+
+    <nav>
+      <div class="in">
+        <button data-tab="tariffs" aria-current="page">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="6" width="18" height="12" rx="2" />
+            <circle cx="12" cy="12" r="2.5" /></svg
+          >Тарифы
+        </button>
+        <button data-tab="sub">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v5l3 2" /></svg
+          >Подписка
+        </button>
+        <button data-tab="orders">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" />
+            <path d="M9 8h6M9 12h6" /></svg
+          >Заказы
+        </button>
+        <button data-tab="help">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" />
+            <path
+              d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"
+            /></svg
+          >Помощь
+        </button>
+      </div>
+    </nav>
+    <div id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      const tg = window.Telegram && window.Telegram.WebApp;
+      try {
+        if (tg) {
+          tg.ready();
+          tg.expand();
+          tg.setHeaderColor("#0e1512");
+          tg.setBackgroundColor("#0e1512");
+        }
+      } catch (e) {}
+
+      const $ = (s, r = document) => r.querySelector(s);
+      const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+      let price = 299;
+
+      function show(tab) {
+        $$(".screen").forEach((s) => (s.hidden = s.id !== tab));
+        $$("nav button").forEach((b) =>
+          b.toggleAttribute("aria-current", b.dataset.tab === tab),
+        );
+        $$("nav button").forEach((b) =>
+          b.dataset.tab === tab
+            ? b.setAttribute("aria-current", "page")
+            : b.removeAttribute("aria-current"),
+        );
+        window.scrollTo(0, 0);
+      }
+
+      let timer;
+      function toast(msg) {
+        const t = $("#toast");
+        t.textContent = msg;
+        t.classList.add("on");
+        clearTimeout(timer);
+        timer = setTimeout(() => t.classList.remove("on"), 2400);
+        try {
+          tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred("light");
+        } catch (e) {}
+      }
+
+      $$("nav button").forEach((b) =>
+        b.addEventListener("click", () => show(b.dataset.tab)),
+      );
+      $$(".tariff").forEach((b) =>
+        b.addEventListener("click", () => {
+          $$(".tariff").forEach((x) => x.setAttribute("aria-checked", x === b));
+          price = Number(b.dataset.price);
+          $("#pay").textContent = "Оплатить " + price + " ₽";
+        }),
+      );
+      $("#pay").addEventListener("click", () =>
+        toast("Заказ на " + price + " ₽ оплачен (тест)"),
+      );
+      $("#link").addEventListener("click", () =>
+        toast("Ссылка отправлена в чат с ботом"),
+      );
+      $("#extend").addEventListener("click", () => show("tariffs"));
+      $("#support").addEventListener("click", () =>
+        toast("Здесь откроется чат поддержки"),
+      );
+    </script>
+  </body>
+</html>
