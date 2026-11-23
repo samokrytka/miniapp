@@ -313,7 +313,7 @@
   <body>
     <main class="app">
       <section class="screen" id="tariffs">
-        <h1>Доступ к закрытому каналу</h1>
+        <h1>Доступ к AI Capital Research</h1>
         <p class="lead">
           Выберите срок. Оплата в тестовом режиме, деньги не списываются.
         </p>
@@ -346,8 +346,8 @@
           </button>
         </div>
         <ul class="includes">
-          <li>Все материалы закрытого канала</li>
-          <li>Одноразовая ссылка приходит сразу после оплаты</li>
+          <li>Анализ акций по выбранному тикеру</li>
+          <li>Доступ к прошлым отчётам</li>
           <li>При продлении срок добавляется к текущему</li>
         </ul>
         <button class="btn" id="pay">Оплатить 299 ₽</button>
@@ -355,7 +355,7 @@
 
       <section class="screen" id="sub" hidden>
         <h1>Моя подписка</h1>
-        <p class="lead">Доступ к каналу и срок действия.</p>
+        <p class="lead">Доступ к анализу и срок действия подписки.</p>
         <div class="card" id="sub-on" hidden>
           <span class="pill">Активна</span>
           <div class="days" id="d-num">0</div>
@@ -366,7 +366,6 @@
         <div class="card" id="sub-off" hidden>
           <p id="off-text" style="margin: 0"></p>
         </div>
-        <button class="btn" id="link">Получить ссылку в канал</button>
         <button class="btn ghost" id="extend">Оформить или продлить</button>
       </section>
 
@@ -386,19 +385,8 @@
           Написать в поддержку
         </button>
         <details>
-          <summary>Как получить ссылку на канал?</summary>
-          <p>
-            Ссылка приходит в чат с ботом сразу после оплаты и действует 1 час.
-            Если она истекла, нажмите «Получить ссылку в канал» на вкладке
-            «Подписка».
-          </p>
-        </details>
-        <details>
           <summary>Что будет, когда подписка закончится?</summary>
-          <p>
-            Бот напишет вам и уберёт вас из канала. Вернуться можно в любой
-            момент, оформив новую подписку.
-          </p>
+          <p>Доступ к анализу и отчётам будет приостановлен. Его можно восстановить, оформив новую подписку.</p>
         </details>
         <details>
           <summary>Можно ли продлить заранее?</summary>
@@ -569,7 +557,6 @@
       }
 
       $("#pay").addEventListener("click", () => toBot("buy_" + key));
-      $("#link").addEventListener("click", () => toBot("link"));
       $("#extend").addEventListener("click", () => show("tariffs"));
       const SUPPORT = "lil_pump_kin"; // ник поддержки без @
       $("#support").addEventListener("click", () => {
