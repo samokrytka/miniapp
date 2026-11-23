@@ -487,8 +487,15 @@
 
       function toBot(param) {
         const url = "https://t.me/" + BOT + "?start=" + param;
-        if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
-        else window.open(url, "_blank");
+        openTelegramChat(url);
+      }
+      function openTelegramChat(url) {
+        if (tg && tg.openTelegramLink) {
+          tg.openTelegramLink(url);
+          tg.close();
+        } else {
+          window.location.href = url;
+        }
       }
       function leftLabel(n) {
         const a = n % 10,
@@ -571,8 +578,7 @@
           SUPPORT +
           "?text=" +
           encodeURIComponent("Здравствуйте! Вопрос по подписке: ");
-        if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
-        else window.open(url, "_blank");
+        openTelegramChat(url);
       });
       $("#refresh").addEventListener("click", () => toBot("app"));
       renderSub();
