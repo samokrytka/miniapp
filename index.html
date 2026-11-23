@@ -409,19 +409,16 @@
             <path d="M12 7v5l3 2" /></svg
           >Подписка
         </button>
-        <button data-tab="orders">
+        <button data-action="reports">
           <svg viewBox="0 0 24 24">
             <path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" />
             <path d="M9 8h6M9 12h6" /></svg
-          >Заказы
+          >Мои отчёты
         </button>
-        <button data-tab="help">
+        <button data-action="analyze">
           <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="9" />
-            <path
-              d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"
-            /></svg
-          >Помощь
+            <path d="M12 3v18M3 12h18" /></svg
+          >Новый анализ
         </button>
       </div>
     </nav>
@@ -453,7 +450,10 @@
         window.scrollTo(0, 0);
       }
       $$("nav button").forEach((b) =>
-        b.addEventListener("click", () => show(b.dataset.tab)),
+        b.addEventListener("click", () => {
+          if (b.dataset.action) return toBot(b.dataset.action);
+          show(b.dataset.tab);
+        }),
       );
       $$(".tariff").forEach((b) =>
         b.addEventListener("click", () => {
